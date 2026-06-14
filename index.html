@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WHO ARE YOU — A Self-Discovery Game</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+
+  :root {
+    --ink: #0e0c09;
+    --parchment: #f5f0e8;
+    --gold: #c9a84c;
+    --gold-dim: #7a6230;
+    --blood: #8b1a1a;
+    --ash: #3a3530;
+    --smoke: #6b6560;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: 'Crimson Pro', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(201,168,76,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(139,26,26,0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  header {
+    text-align: center;
+    padding: 48px 0 36px;
+    border-bottom: 1px solid var(--gold-dim);
+    margin-bottom: 48px;
+  }
+
+  .eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(36px, 8vw, 64px);
+    font-weight: 900;
+    line-height: 1;
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(201,168,76,0.3);
+    margin-bottom: 16px;
+  }
+
+  .tagline {
+    font-size: 18px;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--smoke);
+    line-height: 1.5;
+  }
+
+  .screen { display: none; animation: fadeUp 0.5s ease both; }
+  .screen.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* START */
+  .start-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 2px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .start-card p {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #c8bfb0;
+    margin-bottom: 24px;
+  }
+
+  .start-card p strong { color: var(--gold); font-weight: 600; }
+
+  .warn-box {
+    background: rgba(139,26,26,0.12);
+    border: 1px solid rgba(139,26,26,0.35);
+    border-radius: 2px;
+    padding: 14px 20px;
+    margin-bottom: 28px;
+    font-size: 15px;
+    color: #e0b0b0;
+    line-height: 1.6;
+  }
+
+  .scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .scenario-pill {
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 2px;
+    padding: 12px 16px;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--gold-dim);
+    text-align: center;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 14px 36px;
+    border: 1px solid var(--gold);
+    background: transparent;
+    color: var(--gold);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+
+  .btn:hover { background: var(--gold); color: var(--ink); }
+
+  .btn-ghost {
+    border-color: var(--smoke);
+    color: var(--smoke);
+    font-size: 12px;
+    padding: 10px 24px;
+  }
+
+  .btn-ghost:hover { background: var(--smoke); color: var(--parchment); }
+
+  /* GAME */
+  .progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--gold);
+    transition: width 0.5s ease;
+  }
+
+  .progress-label {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--gold-dim);
+    white-space: nowrap;
+  }
+
+  .scenario-tag {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    color: var(--blood);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .scenario-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(20px, 5vw, 28px);
+    font-weight: 700;
+    color: var(--parchment);
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+
+  .scenario-body {
+    font-size: 17px;
+    line-height: 1.85;
+    color: #c8bfb0;
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid var(--gold-dim);
+    padding: 20px 24px;
+    border-radius: 0 2px 2px 0;
+    margin-bottom: 28px;
+    white-space: pre-wrap;
+  }
+
+  .choices-label {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+
+  .choice-btn {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 2px;
+    padding: 16px 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--parchment);
+    font-family: 'Crimson Pro', serif;
+    font-size: 16px;
+    line-height: 1.5;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .choice-btn:not(:disabled):hover {
+    background: rgba(201,168,76,0.08);
+    border-color: var(--gold);
+    transform: translateX(4px);
+  }
+
+  /* locked = chosen */
+  .choice-btn.selected {
+    background: rgba(201,168,76,0.12);
+    border-color: var(--gold);
+    cursor: default;
+    opacity: 1 !important;
+  }
+
+  /* locked = not chosen */
+  .choice-btn.locked-out {
+    opacity: 0.35 !important;
+    cursor: not-allowed;
+  }
+
+  .choice-letter {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 20px;
+    padding-top: 2px;
+  }
+
+  .lock-badge {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    color: var(--gold-dim);
+    margin-left: auto;
+    padding-top: 3px;
+    white-space: nowrap;
+  }
+
+  /* CONSEQUENCE */
+  .consequence-box {
+    background: rgba(139,26,26,0.08);
+    border: 1px solid rgba(139,26,26,0.3);
+    border-radius: 2px;
+    padding: 18px 22px;
+    margin-top: 20px;
+    font-size: 16px;
+    line-height: 1.75;
+    color: #d4b8b8;
+    font-style: italic;
+    display: none;
+    animation: fadeUp 0.4s ease both;
+    white-space: pre-wrap;
+  }
+
+  .consequence-box.show { display: block; }
+
+  .next-wrap { margin-top: 24px; text-align: right; display: none; }
+  .next-wrap.show { display: block; }
+
+  /* LOADING */
+  .loading { text-align: center; padding: 48px; display: none; }
+  .loading.show { display: block; }
+
+  .loader-ring {
+    width: 48px;
+    height: 48px;
+    border: 2px solid rgba(201,168,76,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading p {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--gold-dim);
+  }
+
+  /* RESULT */
+  .result-banner {
+    text-align: center;
+    padding: 40px 0 32px;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    margin-bottom: 40px;
+  }
+
+  .archetype-name {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(28px, 7vw, 52px);
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 60px rgba(201,168,76,0.4);
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .archetype-subtitle {
+    font-size: 16px;
+    font-style: italic;
+    color: var(--smoke);
+    margin-top: 8px;
+  }
+
+  .result-body {
+    font-size: 18px;
+    line-height: 1.9;
+    color: #c8bfb0;
+    white-space: pre-wrap;
+    margin-bottom: 40px;
+  }
+
+  .traits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .trait-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 2px;
+    padding: 20px;
+  }
+
+  .trait-label {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 0.35em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .trait-value { font-size: 16px; color: var(--parchment); font-weight: 600; }
+
+  /* FULL CHOICE BREAKDOWN */
+  .breakdown-section {
+    margin-bottom: 48px;
+  }
+
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+  }
+
+  .breakdown-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 2px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .breakdown-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .breakdown-num {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 2px;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+
+  .breakdown-sit-name {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--blood);
+    text-transform: uppercase;
+    padding-top: 5px;
+  }
+
+  .breakdown-chosen {
+    background: rgba(201,168,76,0.07);
+    border-left: 2px solid var(--gold);
+    padding: 12px 16px;
+    border-radius: 0 2px 2px 0;
+    font-size: 16px;
+    color: var(--parchment);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+
+  .breakdown-chosen-label {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--gold-dim);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .breakdown-other-label {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--smoke);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .other-choices-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+  .other-choice-item {
+    display: flex;
+    gap: 10px;
+    font-size: 14px;
+    color: #888070;
+    line-height: 1.5;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 2px;
+  }
+
+  .other-choice-letter {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    color: var(--smoke);
+    min-width: 16px;
+    padding-top: 2px;
+  }
+
+  .breakdown-meaning {
+    font-size: 15px;
+    line-height: 1.75;
+    color: #b0a898;
+    font-style: italic;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 14px;
+    white-space: pre-wrap;
+  }
+
+  .meaning-label {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-style: normal;
+    display: block;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .error-box {
+    background: rgba(139,26,26,0.12);
+    border: 1px solid rgba(139,26,26,0.4);
+    border-radius: 2px;
+    padding: 20px 24px;
+    margin-top: 20px;
+    font-size: 15px;
+    color: #e0b0b0;
+    display: none;
+  }
+
+  .error-box.show { display: block; }
+
+  /* CUSTOM ALERT MODAL */
+  #alert-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #alert-overlay.show { display: flex; }
+
+  .alert-box {
+    background: #1a0a0a;
+    border: 1px solid var(--blood);
+    border-radius: 2px;
+    padding: 48px 40px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    animation: fadeUp 0.3s ease both;
+    box-shadow: 0 0 60px rgba(139,26,26,0.4);
+  }
+
+  .alert-icon { font-size: 48px; margin-bottom: 20px; }
+
+  .alert-title {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--blood);
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+
+  .alert-sub {
+    font-size: 15px;
+    color: #c8bfb0;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+
+  @media (max-width: 480px) {
+    .start-card { padding: 24px 16px; }
+    .scenario-body { padding: 14px 16px; }
+    .choice-btn { font-size: 15px; padding: 14px 14px; }
+    .traits-grid { grid-template-columns: 1fr 1fr; }
+    .breakdown-card { padding: 18px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CUSTOM ALERT -->
+<div id="alert-overlay">
+  <div class="alert-box">
+    <div class="alert-icon">⚔️</div>
+    <div class="alert-title">BETTER LUCK NEXT TIME, SOLDIER!</div>
+    <div class="alert-sub">You already made your choice. A true soldier stands by their decision — no going back on the battlefield!</div>
+    <button class="btn" onclick="closeAlert()">I Understand</button>
+  </div>
+</div>
+
+<div id="app">
+
+  <header>
+    <p class="eyebrow">A Mirror for the Soul</p>
+    <h1>WHO ARE YOU?</h1>
+    <p class="tagline">Live through moments that matter.<br>Find out who you really are.</p>
+  </header>
+
+  <!-- START SCREEN -->
+  <div id="screen-start" class="screen active">
+    <div class="start-card">
+      <p>You will go through <strong>5 big situations</strong> — like being in a war, facing a disaster, or making a very hard choice. Whatever you pick tells us about the real you.</p>
+      <p>No right or wrong answers. Just honest ones. <strong>Think carefully before you tap — you cannot change your answer!</strong></p>
+      <div class="warn-box">
+        ⚠️ <strong>Warning:</strong> Once you pick an answer, it is locked forever. Choose like your life depends on it — because in the game, it does.
+      </div>
+      <div class="scenario-grid">
+        <div class="scenario-pill">⚔️ War & Battle</div>
+        <div class="scenario-pill">🔥 Crisis & Survival</div>
+        <div class="scenario-pill">⚖️ Hard Moral Choice</div>
+        <div class="scenario-pill">👑 Power & Leadership</div>
+        <div class="scenario-pill">💀 Love & Sacrifice</div>
+      </div>
+      <button class="btn" onclick="startGame()">Start the Game</button>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="screen-game" class="screen">
+    <div class="progress-bar">
+      <span class="progress-label" id="progress-label">SITUATION 1 OF 5</span>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div id="loading-scenario" class="loading show">
+      <div class="loader-ring"></div>
+      <p>Setting up your situation...</p>
+    </div>
+
+    <div id="situation-content" style="display:none">
+      <span class="scenario-tag" id="situation-tag">WAR</span>
+      <h2 class="scenario-title" id="situation-title"></h2>
+      <div class="scenario-body" id="situation-body"></div>
+
+      <p class="choices-label">What do you do? (Pick one — no going back!)</p>
+      <div class="choices" id="choices-container"></div>
+
+      <div class="consequence-box" id="consequence-box"></div>
+      <div class="error-box" id="error-box"></div>
+      <div class="next-wrap" id="next-wrap">
+        <button class="btn" onclick="nextSituation()">Next Situation →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="screen-result" class="screen">
+    <div id="loading-result" class="loading show">
+      <div class="loader-ring"></div>
+      <p>Reading your soul...</p>
+    </div>
+
+    <div id="result-content" style="display:none">
+      <div class="result-banner">
+        <p class="eyebrow">Your True Self Has Been Revealed</p>
+        <div class="archetype-name" id="archetype-name"></div>
+        <div class="archetype-subtitle" id="archetype-subtitle"></div>
+      </div>
+
+      <div class="result-body" id="result-body"></div>
+
+      <div class="traits-grid" id="traits-grid"></div>
+
+      <!-- FULL BREAKDOWN OF ALL CHOICES -->
+      <div class="breakdown-section">
+        <p class="section-title">Every Choice You Made — Fully Explained</p>
+        <div id="breakdown-list"></div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn" onclick="restartGame()">Play Again</button>
+        <button class="btn btn-ghost" onclick="shareResult()">Share My Result</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SITUATIONS = [
+  { tag: 'WAR', theme: 'combat and war on a battlefield' },
+  { tag: 'CRISIS', theme: 'survival in a sudden disaster or collapse' },
+  { tag: 'MORAL DILEMMA', theme: 'a very hard ethical or moral choice' },
+  { tag: 'POWER', theme: 'suddenly having leadership and power over others' },
+  { tag: 'SACRIFICE', theme: 'giving something up for someone you love' },
+];
+
+let currentStep = 0;
+let choices = []; // each: { situation, choiceText, choiceLetter, allChoices, scene, meaning }
+let choiceLocked = false;
+
+async function callClaude(messages, system) {
+  const res = await fetch("/.netlify/functions/claude", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      system,
+      messages
+    })
+  });
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  const d = await res.json();
+  return d.content.map(b => b.text || '').join('');
+}
+
+function parseJSON(txt) {
+  return JSON.parse(txt.replace(/```json|```/g, '').trim());
+}
+
+function startGame() {
+  currentStep = 0;
+  choices = [];
+  choiceLocked = false;
+  showScreen('game');
+  loadSituation();
+}
+
+async function loadSituation() {
+  const sit = SITUATIONS[currentStep];
+  choiceLocked = false;
+
+  document.getElementById('progress-label').textContent = `SITUATION ${currentStep + 1} OF 5`;
+  document.getElementById('progress-fill').style.width = `${(currentStep / 5) * 100}%`;
+  showLoading('scenario', true);
+
+  const prev = choices.length > 0
+    ? 'What the player chose before: ' + choices.map((c, i) => `Situation ${i+1} (${SITUATIONS[i].tag}): picked "${c.choiceText}"`).join('; ') + '.'
+    : '';
+
+  const system = `You write simple, clear English. You make a self-discovery game with exciting situations. Use short sentences. Avoid big words. Be direct. Respond ONLY with valid JSON, no markdown, no extra text.`;
+
+  const prompt = `Create situation ${currentStep + 1} of 5. Theme: "${sit.theme}".
+${prev}
+
+Use simple English — short sentences, everyday words, easy to understand for anyone.
+Return this EXACT JSON:
+{
+  "title": "Short exciting title, 5-7 words",
+  "scene": "3 short sentences putting the player in the situation. Use 'you'. Make it feel real and urgent. Keep words simple.",
+  "choices": [
+    { "letter": "A", "text": "One clear action. Short. Simple words." },
+    { "letter": "B", "text": "A different action — opposite feeling from A." },
+    { "letter": "C", "text": "An unusual or surprising action." },
+    { "letter": "D", "text": "The most human, emotional response." }
+  ]
+}
+Each choice must be clearly different from the others.`;
+
+  try {
+    const raw = await callClaude([{ role:'user', content: prompt }], system);
+    const data = parseJSON(raw);
+
+    document.getElementById('situation-tag').textContent = sit.tag;
+    document.getElementById('situation-title').textContent = data.title;
+    document.getElementById('situation-body').textContent = data.scene;
+
+    const container = document.getElementById('choices-container');
+    container.innerHTML = '';
+    data.choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.dataset.letter = choice.letter;
+      btn.innerHTML = `<span class="choice-letter">${choice.letter}</span><span>${choice.text}</span>`;
+      btn.onclick = () => selectChoice(choice, data.choices, data.scene, btn);
+      container.appendChild(btn);
+    });
+
+    document.getElementById('consequence-box').classList.remove('show');
+    document.getElementById('consequence-box').textContent = '';
+    document.getElementById('error-box').classList.remove('show');
+    document.getElementById('next-wrap').classList.remove('show');
+
+    showLoading('scenario', false);
+  } catch(err) {
+    showLoading('scenario', false);
+    const box = document.getElementById('error-box');
+    box.textContent = 'Could not load this situation. Check your internet and try again.';
+    box.classList.add('show');
+    document.getElementById('situation-content').style.display = 'block';
+  }
+}
+
+async function selectChoice(choice, allChoices, scene, clickedBtn) {
+  // If already locked, show alert and stop
+  if (choiceLocked) {
+    showAlert();
+    return;
+  }
+
+  choiceLocked = true;
+
+  // Style all buttons
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    if (b === clickedBtn) {
+      b.classList.add('selected');
+      // Add lock badge
+      const badge = document.createElement('span');
+      badge.className = 'lock-badge';
+      badge.textContent = '✓ YOUR CHOICE';
+      b.appendChild(badge);
+    } else {
+      b.classList.add('locked-out');
+    }
+    b.disabled = true;
+  });
+
+  // Get consequence + meaning in plain English
+  const system = `You write in very simple, clear English. Short sentences. No big words. You explain what happens next AND what the choice means about the person's personality. Be honest and specific. Plain text only, no JSON.`;
+
+  const prompt = `The player faced this situation: "${scene}"
+They chose: "${choice.letter}. ${choice.text}"
+
+Write 2-3 short sentences:
+1. What happens immediately after this choice.
+2. What this choice shows about who they really are. Be simple and direct.`;
+
+  const box = document.getElementById('consequence-box');
+  box.textContent = 'Thinking...';
+  box.classList.add('show');
+
+  let meaning = '';
+  try {
+    const result = await callClaude([{ role:'user', content: prompt }], system);
+    meaning = result;
+    box.textContent = result;
+  } catch(err) {
+    meaning = 'Your choice has been recorded.';
+    box.textContent = meaning;
+  }
+
+  // Store
+  choices.push({
+    situation: SITUATIONS[currentStep].tag,
+    scene,
+    choiceText: `${choice.letter}. ${choice.text}`,
+    choiceLetter: choice.letter,
+    choiceOnly: choice.text,
+    allChoices,
+    meaning
+  });
+
+  document.getElementById('next-wrap').classList.add('show');
+}
+
+function nextSituation() {
+  currentStep++;
+  if (currentStep >= SITUATIONS.length) {
+    showResult();
+  } else {
+    loadSituation();
+  }
+}
+
+async function showResult() {
+  showScreen('result');
+  showLoading('result', true);
+
+  const system = `You are a wise, honest psychologist. You use very simple English — short sentences, everyday words. You analyze someone's personality based on 5 choices they made. Be direct. Be real. No flattery. No harsh criticism. Respond ONLY with valid JSON, no markdown.`;
+
+  const summary = choices.map((c, i) =>
+    `Situation ${i+1} (${c.situation}): They chose — "${c.choiceText}"`
+  ).join('\n');
+
+  const prompt = `A person made these 5 choices:
+${summary}
+
+Analyze their personality in simple, clear English. Return this EXACT JSON:
+{
+  "archetype": "2-4 word name for their personality (e.g. 'The Quiet Protector', 'The Bold Risk-Taker')",
+  "subtitle": "One simple sentence describing this type of person",
+  "analysis": "5-6 short sentences. Talk about what their choices show. Mention at least 3 of their actual choices. Be honest — good and bad. Use simple words anyone can understand.",
+  "traits": [
+    { "label": "Biggest Strength", "value": "3-5 words" },
+    { "label": "Secret Fear", "value": "3-5 words" },
+    { "label": "How They Decide", "value": "3-5 words" },
+    { "label": "Under Pressure", "value": "3-5 words" },
+    { "label": "Blind Spot", "value": "3-5 words" },
+    { "label": "What Drives Them", "value": "3-5 words" }
+  ],
+  "choiceMeanings": [
+    "What choosing option X in situation 1 says about this person — 2 simple sentences.",
+    "What choosing option X in situation 2 says about this person — 2 simple sentences.",
+    "What choosing option X in situation 3 says about this person — 2 simple sentences.",
+    "What choosing option X in situation 4 says about this person — 2 simple sentences.",
+    "What choosing option X in situation 5 says about this person — 2 simple sentences."
+  ]
+}`;
+
+  try {
+    const raw = await callClaude([{ role:'user', content: prompt }], system);
+    const data = parseJSON(raw);
+
+    document.getElementById('archetype-name').textContent = data.archetype;
+    document.getElementById('archetype-subtitle').textContent = data.subtitle;
+    document.getElementById('result-body').textContent = data.analysis;
+
+    document.getElementById('traits-grid').innerHTML = data.traits.map(t => `
+      <div class="trait-card">
+        <div class="trait-label">${t.label}</div>
+        <div class="trait-value">${t.value}</div>
+      </div>
+    `).join('');
+
+    // Full breakdown of every choice with all options shown
+    const breakdownList = document.getElementById('breakdown-list');
+    breakdownList.innerHTML = choices.map((c, i) => {
+      const others = c.allChoices.filter(o => o.letter !== c.choiceLetter);
+      const otherHTML = others.map(o => `
+        <div class="other-choice-item">
+          <span class="other-choice-letter">${o.letter}</span>
+          <span>${o.text}</span>
+        </div>
+      `).join('');
+
+      const meaning = (data.choiceMeanings && data.choiceMeanings[i]) || c.meaning || '';
+
+      return `
+        <div class="breakdown-card">
+          <div class="breakdown-header">
+            <span class="breakdown-num">SITUATION ${i+1}</span>
+            <span class="breakdown-sit-name">${c.situation}</span>
+          </div>
+
+          <div class="breakdown-chosen-label">✓ You Chose</div>
+          <div class="breakdown-chosen">${c.choiceText}</div>
+
+          <div class="breakdown-other-label">Other Options You Didn't Pick</div>
+          <div class="other-choices-list">${otherHTML}</div>
+
+          <div class="breakdown-meaning">
+            <span class="meaning-label">What This Says About You</span>
+            ${meaning}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    showLoading('result', false);
+  } catch(err) {
+    showLoading('result', false);
+    document.getElementById('result-content').innerHTML = `
+      <p style="color:#e0b0b0;font-size:17px;text-align:center;padding:40px">
+        Could not create your result. Please try again.
+      </p>
+      <div style="text-align:center;margin-top:20px">
+        <button class="btn" onclick="restartGame()">Try Again</button>
+      </div>
+    `;
+    document.getElementById('result-content').style.display = 'block';
+  }
+}
+
+function showAlert() {
+  document.getElementById('alert-overlay').classList.add('show');
+}
+
+function closeAlert() {
+  document.getElementById('alert-overlay').classList.remove('show');
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function showLoading(type, show) {
+  document.getElementById(`loading-${type}`).style.display = show ? 'block' : 'none';
+  const id = type === 'scenario' ? 'situation-content' : 'result-content';
+  document.getElementById(id).style.display = show ? 'none' : 'block';
+}
+
+function restartGame() {
+  currentStep = 0;
+  choices = [];
+  choiceLocked = false;
+  showScreen('start');
+}
+
+function shareResult() {
+  const name = document.getElementById('archetype-name').textContent;
+  const txt = `I found out I am "${name}" in the WHO ARE YOU self-discovery game. Try it and find out who YOU are!`;
+  if (navigator.share) {
+    navigator.share({ title: 'WHO ARE YOU?', text: txt });
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt);
+    alert('Copied to clipboard! Share it with your friends.');
+  }
+}
+</script>
+</body>
+</html>
